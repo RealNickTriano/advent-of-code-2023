@@ -19,6 +19,7 @@ public class DayTwo {
         System.out.println(partTwo(data));
     }
 
+    // ------------------- PART ONE SOLUTION -----------------------
     public static int partOne(String data) {
         String[] lines = data.split(System.lineSeparator());
 
@@ -59,6 +60,7 @@ public class DayTwo {
         return result;
     }
 
+    // ------------------- PART TWO SOLUTION -----------------------
     public static int partTwo(String data) {
         String[] lines = data.split(System.lineSeparator());
 
