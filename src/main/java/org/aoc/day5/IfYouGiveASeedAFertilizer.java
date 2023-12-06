@@ -197,37 +197,26 @@ public class IfYouGiveASeedAFertilizer {
                 } else {
                     BigInteger intersectionStart = seedStart.max(sourceStart);
                     BigInteger intersectionEnd = seedEnd.max(sourceEnd);
-                    if (intersectionStart.equals(seedStart) && intersectionEnd.equals(seedEnd)) {
-                        // fits perfectly in source range
-                    } else if (intersectionStart.equals(seedStart)){
-                        // intersectionEnd + 1 , seedEnd maps to itself
-                    } else if (intersectionEnd.equals(seedEnd) && seedStart.compareTo(sourceStart) < 0) {
-                        // seedStart, intersectionStart - 1 maps to itself
+                    if (intersectionStart.compareTo(seedStart) > 0) {
+                        List<String> selfRanges = Arrays.asList(seedStart.toString(),
+                                intersectionStart.subtract(BigInteger.ONE).toString());
+
+                        List<String> intersectionRanges = Arrays.asList(intersectionStart.toString(),
+                                intersectionEnd.toString());
+
+                        destinationRanges.add(selfRanges);
+                        destinationRanges.add(intersectionRanges);
+                    } else if (intersectionEnd.compareTo(seedEnd) < 0) {
+                        List<String> selfRanges = Arrays.asList(
+                                intersectionEnd.add(BigInteger.ONE).toString(),
+                                seedEnd.toString());
+
+                        List<String> intersectionRanges = Arrays.asList(intersectionStart.toString(),
+                                intersectionEnd.toString());
+
+                        destinationRanges.add(selfRanges);
+                        destinationRanges.add(intersectionRanges);
                     }
-                }
-                if (seedStart.compareTo(sourceEnd) <= 0 && seedStart.compareTo(sourceStart) >= 0) {
-                    // Remove original ranges
-                    destinationRanges.remove(i);
-                    if (seedEnd.compareTo(sourceEnd) <= 0) {
-                        // seed range is fully contained into source range
-                        System.out.println("Detected FULL Intersection");
-                    } else if (seedEnd.compareTo(sourceEnd) > 0) {
-                        // seed range is partially contained in source range
-                        System.out.println("Detected PARTIAL Intersection");
-
-                        // seedStart to sourceStart - 1 maps to themselves
-                        List<String> rangesOfSelf = new ArrayList<>(List.of(
-                                new String[]{seedStart.toString(),
-                                        sourceStart.subtract(BigInteger.ONE).toString()}));
-                        // sourceStart to seedEnd maps to [destinationStart , (destinationStart + (seedEnd - sourceStart))]
-                        List<String> rangesMappedToDestination = new ArrayList<>();
-                        rangesMappedToDestination.add(destinationStart.toString());
-                        rangesMappedToDestination.add(destinationStart.add(seedEnd.subtract(sourceStart)).toString());
-
-                        destinationRanges.add(rangesOfSelf);
-                        destinationRanges.add(rangesMappedToDestination);
-                    }
-
                 }
             }
         }
