@@ -16,8 +16,8 @@ public class IfYouGiveASeedAFertilizer {
             e.printStackTrace();
         }
 
-        //System.out.println(partOne(data));
-        System.out.println(partTwo(data));
+        System.out.println(partOne(data));
+        //System.out.println(partTwo(data));
     }
 
     /**
@@ -76,22 +76,33 @@ public class IfYouGiveASeedAFertilizer {
         return minLocation;
     }
 
-    public static BigInteger partTwo(String data) {
+    public static long partTwo(String data) {
         //System.out.println(data);
         String[] lines = data.split(System.lineSeparator());
         //System.out.println(Arrays.toString(lines));
-        List<String> mySeeds = Arrays.stream(lines[0]
-                        .split(":")[1]
-                        .strip()
-                        .split(" "))
+        List<Long> mySeeds = Arrays.stream(lines[0]
+                .split(":")[1]
+                .strip()
+                .split(" "))
+                .map(Long::parseLong)
                 .toList();
-        //System.out.println(mySeeds);
 
 
-        List<List<List<String>>> maps = new ArrayList<>();
+        List<List<Long>> seedsRange = new ArrayList<>();
+        for (int i = 0; i < mySeeds.size() - 1; i+=2) {
+            List<Long> range = new ArrayList<>();
+            range.add(mySeeds.get(i));
+            range.add(mySeeds.get(i) + mySeeds.get(i + 1)  - 1);
+            seedsRange.add(range);
+        }
+
+        System.out.println("Seed range: " + seedsRange);
+
+
+        List<List<List<Long>>> maps = new ArrayList<>();
 
         int i = 3;
-        List<List<String>> numbers = new ArrayList<>();
+        List<List<Long>> numbers = new ArrayList<>();
         while (i < lines.length) {
             if (lines[i].isEmpty()) {
                 //System.out.println(numbers);
@@ -99,46 +110,108 @@ public class IfYouGiveASeedAFertilizer {
                 numbers = new ArrayList<>();
                 i += 2;
             }
-            numbers.add(Arrays.asList(lines[i].strip().split(" ")));
+            numbers.add(Arrays.stream(lines[i]
+                    .strip()
+                    .split(" "))
+                    .map(Long::parseLong)
+                    .toList());
             i++;
         }
         //System.out.println(numbers);
         maps.add(numbers);
-        //System.out.println(maps);
+        System.out.println(maps);
 
-        BigInteger minLocation = BigInteger.valueOf((long) Double.POSITIVE_INFINITY);
-        //System.out.println("Min: " + minLocation);
-        // Go through maps for each seed
-        for (int k = 0; k + 1 < mySeeds.size(); k += 2) {
-            BigInteger start = new BigInteger(mySeeds.get(k));
-            BigInteger length = new BigInteger(mySeeds.get(k + 1));
-            BigInteger end = start.add(length.subtract(BigInteger.ONE));
-            List<List<String>> destinationRanges = new ArrayList<>();
-            destinationRanges.add(new ArrayList<>(Arrays.asList(start.toString(), end.toString())));
-            System.out.println("Initial Seeds: " + destinationRanges);
-            for (List<List<String>> map : maps) {
-                destinationRanges = getDestinationRanges(map, destinationRanges);
-                System.out.println("Destination Ranges: " + destinationRanges);
+        List<List<Long>> locationRanges = new ArrayList<>();
+        for (List<Long> range : seedsRange) {
+            List<List<Long>> destinationRanges = new ArrayList<>();
+            destinationRanges.add(new ArrayList<>(range));
+            for (List<List<Long>> map : maps) {
+                destinationRanges = getNextDestinationRanges(destinationRanges, map);
             }
-            System.out.println("Should be locations: " + destinationRanges);
-
-            // Find minimum from Location ranges
-            minLocation = minLocation.min(destinationRanges.stream().map(item ->
-                    new BigInteger(item.get(0)).min(new BigInteger(item.get(1))))
-                            .reduce(BigInteger.ZERO, BigInteger::min));
-
-//            for (String seed: mySeeds) {
-//                BigInteger value = new BigInteger(seed);
-//                for (List<List<String>> map: maps) {
-//                    // Check if seed is in any range
-//                    value = getDestinationValue(map, value);
-//                    System.out.println("Final Destination: " + value);
-//                }
-//                minLocation = minLocation.min(value);
-//            }
+            locationRanges.addAll(destinationRanges);
         }
 
-        return minLocation;
+        System.out.println(locationRanges);
+        return 0;
+    }
+
+    private static List<List<Long>> getNextDestinationRanges(List<List<Long>> ranges, List<List<Long>> map) {
+        List<List<Long>> result = new ArrayList<>();
+        // Get destination ranges from source range
+        for (List<Long> seed : ranges) {
+            long seedStart = seed.get(0);
+            long seedEnd = seed.get(1);
+
+
+            System.out.println("Seed Start: " + seedStart + "\tSeed End: " + seedEnd);
+
+            for (List<Long> mapRange : map) {
+                long sourceStart = mapRange.get(1);
+                long sourceEnd = mapRange.get(1) + mapRange.get(2) - 1;
+
+                long destinationStart = mapRange.get(0);
+                long destinationEnd = mapRange.get(0) + mapRange.get(2) - 1;
+
+                System.out.println("sourceStart: " + sourceStart
+                        + "\tsourceEnd: " + sourceEnd
+                        + "\tdestinationStart: " + destinationStart
+                        + "\tdestinationEnd: " + destinationEnd);
+
+                result.addAll(getMappedRanges(seedStart, seedEnd,
+                        sourceStart, sourceEnd,
+                        destinationStart, destinationEnd));
+            }
+        }
+        return result;
+    }
+
+    private static List<List<Long>> getMappedRanges(long seedStart, long seedEnd,
+                                        long sourceStart, long sourceEnd,
+                                        long destinationStart, long destinationEnd) {
+        List<List<Long>> result = new ArrayList<>();
+        // Find source intersections
+        if (seedStart > sourceEnd || seedEnd < sourceStart) {
+            // No Intersection
+        } else {
+            // Some Intersection
+            if (seedStart >= sourceStart && seedEnd <= sourceEnd) {
+                // seed is fully inside source
+                long offsetFromStart = seedStart - sourceStart;
+                long length = seedEnd - seedStart;
+                long newStart = destinationStart + offsetFromStart;
+                long newEnd = newStart + length;
+                List<List<Long>> newRanges = new ArrayList<>();
+                newRanges.add((Arrays.asList(newStart, newEnd)));
+                System.out.println("New Ranges: " + newRanges);
+                return newRanges;
+            } else if (seedEnd >= sourceStart && seedStart < sourceStart) {
+                // seed intersects on lower end of source
+                List<Long> rangeMapsToSelf = Arrays.asList(seedStart, sourceStart - 1);
+                List<Long> destination = Arrays.asList(
+                        destinationStart,
+                        destinationStart + (seedEnd - sourceStart));
+
+                List<List<Long>> newRanges = new ArrayList<>();
+                newRanges.add(rangeMapsToSelf);
+                newRanges.add(destination);
+                System.out.println("New Ranges: " + newRanges);
+                return newRanges;
+            } else if (seedStart <= sourceEnd && seedEnd > sourceEnd) {
+                // seed intersects on higher end of source
+                List<Long> rangeMapsToSelf = Arrays.asList(sourceStart + 1, seedEnd);
+                List<Long> destination = Arrays.asList(
+                        destinationEnd - (sourceEnd - seedStart),
+                        destinationEnd);
+
+                List<List<Long>> newRanges = new ArrayList<>();
+                newRanges.add(rangeMapsToSelf);
+                newRanges.add(destination);
+                System.out.println("New Ranges: " + newRanges);
+                return newRanges;
+            }
+        }
+
+        return result;
     }
 
     private static BigInteger getDestinationValue(List<List<String>> numbers, BigInteger seed) {
