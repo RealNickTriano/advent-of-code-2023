@@ -4,10 +4,22 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Hand implements Comparable<Hand>{
+    public Type type;
     public char[] cards;
     public int bet;
-    public String type;
+    public enum Type {
+        HIGH,
+        ONE,
+        TWO,
+        THREE,
+        FULL,
+        FOUR,
+        FIVE
+    }
 
+    public Hand() {
+
+    }
     public Hand(String hand, int bet) {
         this.cards = hand.toCharArray();
         this.bet = bet;
@@ -15,7 +27,9 @@ public class Hand implements Comparable<Hand>{
     }
 
     public String toString() {
-        return "Cards: " + Arrays.toString(cards) + "\tBet: "  + bet;
+        return "Cards: " + Arrays.toString(cards)
+                + " Bet: "  + bet
+                + " Type: " + this.type;
     }
 
     public static int getCardNum(char c) {
@@ -45,6 +59,9 @@ public class Hand implements Comparable<Hand>{
 
     @Override
     public int compareTo(Hand otherHand) {
+        if (this.type.ordinal() < otherHand.type.ordinal()) return -1;
+        if (this.type.ordinal() > otherHand.type.ordinal()) return 1;
+
         for (int i = 0; i < this.cards.length; i++) {
             if (this.cards[i] != otherHand.cards[i]) {
                 if (getCardNum(this.cards[i]) < getCardNum(otherHand.cards[i]))
@@ -56,32 +73,13 @@ public class Hand implements Comparable<Hand>{
         return 0;
     }
 
-    private static String getTypeOfHand(String cards) {
+    private static Type getTypeOfHand(String cards) {
         int[] cardValue = new int[13];
         for (int i = 0; i < cards.length(); i++) {
-            int index = 0;
-            switch (cards.charAt(i)) {
-                case 'T':
-                    index = 8;
-                    break;
-                case 'J':
-                    index = 9;
-                    break;
-                case 'Q':
-                    index = 10;
-                    break;
-                case 'K':
-                    index = 11;
-                    break;
-                case 'A':
-                    index = 12;
-                    break;
-                default:
-                    index = Character.getNumericValue(cards.charAt(i)) - 2;
-                    break;
-            }
+            int index = getCardNum(cards.charAt(i));
             cardValue[index]++;
         }
+
         /*
             Five of a kind
                 iterate, look for count of 5, anything > 0 and < 5 break
@@ -100,10 +98,10 @@ public class Hand implements Comparable<Hand>{
          */
 
         for (int value : cardValue) {
-            if (value == 5) return "Five of a kind";
+            if (value == 5) return Type.FIVE;
         }
         for (int value : cardValue) {
-            if (value == 4) return "Four of a kind";
+            if (value == 4) return Type.FOUR;
         }
         boolean three = false;
         boolean two = false;
@@ -111,19 +109,19 @@ public class Hand implements Comparable<Hand>{
             if (value == 3) three = true;
             if (value == 2) two = true;
 
-            if (two && three) return "Full house";
+            if (two && three) return Type.FULL;
         }
         for (int value : cardValue) {
-            if (value == 3) return "Three of a kind";
+            if (value == 3) return Type.THREE;
         }
         int twoCount = 0;
         for (int value : cardValue) {
             if (value == 2) twoCount++;
-            if (twoCount == 2) return "Two pair";
+            if (twoCount == 2) return Type.TWO;
         }
         for (int value : cardValue) {
-            if (value == 2) return "One pair";
+            if (value == 2) return Type.ONE;
         }
-        return "High card";
+        return Type.HIGH;
     }
 }

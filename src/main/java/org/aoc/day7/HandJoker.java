@@ -2,10 +2,7 @@ package org.aoc.day7;
 
 import java.util.Arrays;
 
-public class HandJoker implements Comparable<HandJoker>{
-    public char[] cards;
-    public int bet;
-    public String type;
+public class HandJoker extends Hand {
 
     public HandJoker(String hand, int bet) {
         this.cards = hand.toCharArray();
@@ -13,8 +10,20 @@ public class HandJoker implements Comparable<HandJoker>{
         this.type = getTypeOfHand(hand);
     }
 
-    public String toString() {
-        return "Cards: " + Arrays.toString(cards) + " Bet: "  + bet + " Type: " + type;
+    @Override
+    public int compareTo(Hand otherHand) {
+        if (this.type.ordinal() < otherHand.type.ordinal()) return -1;
+        if (this.type.ordinal() > otherHand.type.ordinal()) return 1;
+
+        for (int i = 0; i < this.cards.length; i++) {
+            if (this.cards[i] != otherHand.cards[i]) {
+                if (getCardNum(this.cards[i]) < getCardNum(otherHand.cards[i]))
+                    return -1;
+                else
+                    return 1;
+            }
+        }
+        return 0;
     }
 
     // Have to change values J is now 0
@@ -43,23 +52,10 @@ public class HandJoker implements Comparable<HandJoker>{
         return value;
     }
 
-    @Override
-    public int compareTo(HandJoker otherHand) {
-        for (int i = 0; i < this.cards.length; i++) {
-            if (this.cards[i] != otherHand.cards[i]) {
-                if (getCardNum(this.cards[i]) < getCardNum(otherHand.cards[i]))
-                    return -1;
-                else
-                    return 1;
-            }
-        }
-        return 0;
-    }
-
     // Make type an enum?
     // 0 - 7 where 7 is highest value type
     // I have no clue how to deal with multiple J cards
-    private static String getTypeOfHand(String cards) {
+    private Type getTypeOfHand(String cards) {
         int[] cardValue = new int[13];
         for (int i = 0; i < cards.length(); i++) {
             int index = getCardNum(cards.charAt(i));
@@ -98,7 +94,7 @@ public class HandJoker implements Comparable<HandJoker>{
                     || cardValue[i] + jokers == 5) {
                 System.out.println("Five of a kind: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "Five of a kind";
+                return Type.FIVE;
             }
         }
         for (int i = 1; i < cardValue.length; i++) {
@@ -106,7 +102,7 @@ public class HandJoker implements Comparable<HandJoker>{
                     || cardValue[i] + jokers == 4) {
                 System.out.println("Four of a kind: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "Four of a kind";
+                return Type.FOUR;
             }
         }
         boolean three = false;
@@ -116,21 +112,20 @@ public class HandJoker implements Comparable<HandJoker>{
             if (cardValue[i] == 3 || cardValue[i] + fcurJokers == 3){
                 three = true;
                 fcurJokers = 0;
-                continue;
-            }
-            if (cardValue[i] == 2) two = true;
+
+            } else if (cardValue[i] == 2) two = true;
 
             if (two && three) {
                 System.out.println("full house: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "Full house";
+                return Type.FULL;
             }
         }
         for (int i = 1; i < cardValue.length; i++) {
             if (cardValue[i] == 3 || cardValue[i] + jokers == 3) {
                 System.out.println("Three of a kind: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "Three of a kind";
+                return Type.THREE;
             }
         }
         int twoCount = 0;
@@ -143,18 +138,18 @@ public class HandJoker implements Comparable<HandJoker>{
             if (twoCount == 2) {
                 System.out.println("Two pair: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "Two pair";
+                return Type.TWO;
             }
         }
         for (int i = 1; i < cardValue.length; i++) {
             if (cardValue[i] == 2 || cardValue[i] + jokers == 2) {
                 System.out.println("One pair: "
                         + Arrays.toString(cardValue) + " Cards: "  + cards);
-                return "One pair";
+                return Type.ONE;
             }
         }
         System.out.println("High card: "
                 + Arrays.toString(cardValue) + " Cards: "  + cards);
-        return "High card";
+        return Type.HIGH;
     }
 }
