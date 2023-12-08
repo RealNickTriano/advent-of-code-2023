@@ -4,6 +4,7 @@ import org.aoc.utils.ReadFiles;
 
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CamelCards {
     public static final String INPUT_FILE = "src/main/resources/inputs/day7.txt";
