@@ -3,7 +3,9 @@ package org.aoc.day10;
 import org.aoc.utils.ReadFiles;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PipeMaze {
@@ -94,9 +96,9 @@ public class PipeMaze {
 //        S is the starting position of the animal; there is a pipe on this tile,
 //                but your sketch doesn't show what shape the pipe has.
 
-        List<List<String>> matrix = Arrays.asList(data.split(System.lineSeparator())).stream()
+        List<List<String>> matrix = new ArrayList<>(Arrays.asList(data.split(System.lineSeparator())).stream()
                 .map(item -> Arrays.asList(item.split("")))
-                .toList();
+                .toList());
 
         System.out.println(matrix);
         int[] startPos = new int[] {0, 0};
@@ -110,6 +112,7 @@ public class PipeMaze {
 
             }
         }
+        List<List<Integer>> borderPos = new ArrayList<>();
         int[] currPos = new int[] {startPos[0], startPos[1]};
         int length = 1;
         String previous = "";
@@ -142,6 +145,7 @@ public class PipeMaze {
             }
             length++;
             System.out.println("Moved to: " + Arrays.toString(currPos));
+            borderPos.add(Arrays.asList(currPos[0], currPos[1]));
             //matrix.get(currPos[0]).set(currPos[1], "#");
         } while (!Arrays.equals(currPos, startPos));
 
@@ -149,28 +153,39 @@ public class PipeMaze {
             System.out.println(s);
         }
 
+        System.out.println("Border: " + borderPos);
         boolean in = false;
         int count = 0;
         for (int i = 0; i < matrix.size(); i++) {
             for (int j = 0; j < matrix.get(i).size(); j++) {
-                if (!matrix.get(i).get(j).equals("S")) {
+                if (!borderPos.contains(Arrays.asList(i, j))) {
                     // check left and right
                     int intersections = 0;
                     for (int k = 0; k < j; k++) {
                         //System.out.println(i + " " + k);
-                        if(matrix.get(i).get(k).equals("S") && !matrix.get(i).get(k + 1).equals("S")) {
-                            intersections++;
-
+                        if (borderPos.contains(Arrays.asList(i, k))) {
+                            if(matrix.get(i).get(k).equals("|")
+                                    || matrix.get(i).get(k).equals("J")
+                                    || matrix.get(i).get(k).equals("L")) {
+                                System.out.println(i + " " + j + " Intersected with position: " + i + " " + k);
+                                intersections++;
+                            }
                         }
                     }
                     if (intersections % 2 == 1) {
                         count++;
-                        //System.out.println("point in polygon: " + i + " " + j);
+                        System.out.println("point in polygon: " + i + " " + j);
+                        List<String> row = matrix.get(i);
+                        row.set(j, "I");
+                        matrix.set(i, row);
                     }
                 }
             }
         }
 
+        for (List<String> list : matrix) {
+            System.out.println(list);
+        }
         return count;
     }
 
