@@ -95,12 +95,14 @@ public class PointOfIncidence {
 
             long postRepair = findHorizontalLinesOfReflection(m);
             long postRepairTransposed = findHorizontalLinesOfReflection(transpose(m));
-            System.out.println("Post Repair: " + postRepair);
-            if (preRepair != postRepair) {
-                result += (postRepair * 100) + postRepairTransposed;
-            } else {
-                result += (preRepair * 100) + preRepairTransposed;
-            }
+            //result += (preRepair * 100) + preRepairTransposed;
+            result += (postRepair * 100) + postRepairTransposed;
+//            System.out.println("Post Repair: " + postRepair);
+//            if (preRepair != postRepair) {
+//                result += (postRepair * 100) + postRepairTransposed;
+//            } else {
+//                result += (preRepair * 100) + preRepairTransposed;
+//            }
 
             System.out.println();
         }
@@ -109,16 +111,19 @@ public class PointOfIncidence {
     }
 
     private static List<List<String>> checkAndRepairSmudges(List<List<String>> m) {
-        for (int i = 0; i < m.size(); i++) {
-            for (int j = i + 1; j < m.size(); j++) {
-                int index = compareLists(m.get(i), m.get(j));
-                if (index != -1) {
-                    // found smudge
-                    System.out.println("smudge: " + m.get(i) + " " + index);
-                    m.get(i).set(index, m.get(j).get(index));
-                    return m;
-                }
+        int l = 0;
+        int r = m.size() - 1;
+
+        while (l < r) {
+            int index = compareLists(m.get(l), m.get(r));
+            if (index != -1) {
+                // found smudge
+                System.out.println("smudge: " + m.get(l) + " " + index);
+                m.get(l).set(index, m.get(r).get(index));
+                return m;
             }
+            l++;
+            r--;
         }
 
         return m;
