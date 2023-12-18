@@ -16,8 +16,8 @@ public class ClumsyCrucible {
             e.printStackTrace();
         }
 
-        System.out.println(partOne(data));
-        //System.out.println(partTwo(data));
+        //System.out.println(partOne(data));
+        System.out.println(partTwo(data));
     }
 
     private static int partOne(String data) {
@@ -32,6 +32,22 @@ public class ClumsyCrucible {
             System.out.println(r);
         }
         result = shortestWeightedPath(matrix);
+
+        return result;
+    }
+
+    private static int partTwo(String data) {
+        List<List<Integer>> matrix = Arrays.stream(data.split(System.lineSeparator()))
+                .map(item -> Arrays.stream(item.split(""))
+                        .map(Integer::parseInt).collect(Collectors.toCollection(ArrayList::new)))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        int result = 0;
+
+        for (List<Integer> r : matrix) {
+            System.out.println(r);
+        }
+        result = shortestWeightedPathTwo(matrix);
 
         return result;
     }
@@ -69,6 +85,93 @@ public class ClumsyCrucible {
                     Node newNode = new Node(newRow, newCol, newVal, direction, 0);
                     if (current.direction == -direction) continue;
                     if (current.directionCount == 3
+                            && (current.direction == direction)) {
+                        // cant go here? so put on seen?
+                        System.out.println("Direction count maxed");
+                        System.out.println("\t" + current);
+                        System.out.println("\t" + newNode);
+                        //seen.add(newNode);
+                        continue;
+                    }
+
+
+                    if (current.direction == direction) {
+                        newNode.directionCount = current.directionCount + 1;
+                    } else {
+                        newNode.directionCount = 1;
+                    }
+
+                    newNode.direction = direction;
+                    next.add(newNode);
+                    System.out.println("Added: " + newNode + " From: " + current);
+
+                } catch (IndexOutOfBoundsException ignored) {
+                    System.out.println("Out of bounds, did not add");
+                }
+
+            }
+
+        }
+        List<Node> goals =  seen.stream().filter(item -> item.row == 12 && item.col == 12).toList();
+        System.out.println(goals);
+        System.out.println("Something went wrong");
+
+        return total;
+    }
+
+    private static int shortestWeightedPathTwo(List<List<Integer>> matrix) {
+        int total = 0;
+        List<List<Integer>> nextLocations = Arrays.asList(
+                Arrays.asList(0, 1), Arrays.asList(0, -1),
+                Arrays.asList(1, 0), Arrays.asList(-1, 0));
+
+
+        PriorityQueue<Node> next = new PriorityQueue<>();
+        List<Node> seen = new ArrayList<>();
+        Node start = new Node(0, 0, 0, 0, 0);
+        next.add(start);
+
+        while (!next.isEmpty()) {
+            Node current = next.remove();
+            if (seen.contains(current)) {
+                continue;
+            }
+            System.out.println("At: " + current);
+            seen.add(current);
+            if (current.row == matrix.size() - 1 && current.col == matrix.get(0).size() - 1) {
+                // found goal
+                return current.value;
+            }
+            for (List<Integer> loc : nextLocations) {
+                if (current.directionCount < 4) {
+                    int dir = current.direction;
+                    switch  (dir) {
+                        case 1:
+                            if (loc.get(1) != 1) continue;
+                            break;
+                        case -1:
+                            if (loc.get(1) != -1) continue;
+                            break;
+                        case 2:
+                            if (loc.get(0) != -1) continue;
+                            break;
+                        case -2:
+                            if (loc.get(0) != 1) continue;
+                            break;
+                        default:
+                            System.out.println("Unrecognized direction");
+                            break;
+                    }
+                }
+                int newRow = current.row + loc.get(0);
+                int newCol = current.col + loc.get(1);
+                int direction = getDirection(loc);
+                System.out.println("Direction: " + direction);
+                try {
+                    int newVal = current.value + matrix.get(newRow).get(newCol);
+                    Node newNode = new Node(newRow, newCol, newVal, direction, 0);
+                    if (current.direction == -direction) continue;
+                    if (current.directionCount == 10
                             && (current.direction == direction)) {
                         // cant go here? so put on seen?
                         System.out.println("Direction count maxed");
