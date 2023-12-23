@@ -32,6 +32,8 @@ public class PulsePropagation {
         System.out.println(items);
 
         Map<String, List<String>> modules = new HashMap<>();
+        List<FlipFlop> flipFlopsList = new ArrayList<>();
+        List<Conjunction> conjunctionsList = new ArrayList<>();
         Map<String, Boolean> flipFlops = new HashMap<>();
         Map<String, Map<String, String>> conjunctions = new HashMap<>();
         Map<String, String> toProcess = new HashMap<>();
@@ -39,132 +41,32 @@ public class PulsePropagation {
         for (List<String> m : items) {
             modules.put(m.get(0), Arrays.stream(m.get(1).split(", ")).toList());
             if (m.get(0).charAt(0) == '%') {
+                FlipFlop flipFlop = new FlipFlop(m.get(0).substring(1), "%",
+                        false, null, new ArrayList<>());
+                flipFlopsList.add(flipFlop);
                 flipFlops.put(m.get(0).substring(1), false);
             } else if (m.get(0).charAt(0) == '&') {
+                Conjunction conjunction = new Conjunction(m.get(0).substring(1), "&",
+                        new ArrayList<>(), null, new ArrayList<>());
+                conjunctionsList.add(conjunction);
                 Map<String, String> map = new HashMap<>();
                 for (Map.Entry<String, List<String>> entry : modules.entrySet()) {
                     if (entry.getValue().contains(m.get(0).substring(1))) {
                         map.put(entry.getKey(), "low");
                     }
                 }
+                //conjunction.memory.put();
                 conjunctions.put(m.get(0).substring(1), map);
             }
         }
         System.out.println(modules);
         System.out.println(flipFlops);
         System.out.println(conjunctions);
-
-        int highPulses = 0;
-        int lowPulses = 0;
-        int buttonPressed = 0;
-
-        // [[name, pulseSending]]
-        List<List<String>> queue = new ArrayList<>();
-        queue.add(Arrays.asList("broadcaster", "low"));
-        while (!queue.isEmpty()) {
-            List<String> list = queue.removeFirst();
-            String name = list.get(0);
-            String pulseSending = list.get(1);
-            System.out.println(name);
-            List<String> receivers = modules.get(name);
-            for (String r : receivers) {
-                if (pulseSending.equals("low")) lowPulses++;
-                if (pulseSending.equals("high")) highPulses++;
-                if (flipFlops.containsKey(r)) {
-                    if (pulseSending.equals("low")) {
-                        if (!flipFlops.get(r)) {
-                            queue.add(Arrays.asList("%" + r, "high"));
-                        } else {
-                            queue.add(Arrays.asList("%" + r, "low"));
-                        }
-                    } else {
-                        // do nothing when get high pulse
-                    }
-                    // Flip switch
-                    flipFlops.put(r, !flipFlops.get(r));
-                } else if (conjunctions.containsKey(r)) {
-                    conjunctions.get(r).put(name, pulseSending);
-                    if (conjunctions.get(r).values().stream().allMatch(value -> value.equals("high"))) {
-                        queue.add(Arrays.asList("&" + r, "low"));
-                    } else {
-                        queue.add(Arrays.asList("&" + r, "high"));
-                    }
-                }
-            }
-        }
-        System.out.println(flipFlops);
-        System.out.println(conjunctions);
-        System.out.println(lowPulses + " " + highPulses);
-        return lowPulses * highPulses;
+        System.out.println(flipFlopsList);
+        System.out.println(conjunctionsList);
 
 
-//        // Button press
-//        do {
-//            buttonPressed++;
-//            lowPulses += 1 ;
-//            toProcess.put("broadcaster", "low");
-//            do {
-//
-//                Map<String, String> newProcesses = new HashMap<>();
-//                for (String process : toProcess.keySet()) {
-//                    String pulse = toProcess.get(process);
-//
-//                    List<String> destinations = modules.get(process);
-//                    System.out.println();
-//                    System.out.println("Low: " + lowPulses + " High: " + highPulses);
-//                    System.out.println("Current Flops: " + flipFlops);
-//                    System.out.println("Current Cons: " + conjunctions);
-//                    System.out.println("From: " + process);
-//                    for (String d : destinations) {
-//                        if (pulse.equals("low")) lowPulses++;
-//                        if (pulse.equals("high")) highPulses++;
-//                        System.out.println("\tSent " + pulse + " pulse to " + d);
-//                        if (flipFlops.containsKey(d)) {
-//                            if (pulse.equals("low")) {
-//                                boolean state = flipFlops.get(d);
-//                                if (!state) {
-//                                    flipFlops.put(d, true);
-//                                    newProcesses.put("%" + d, "high");
-//                                    //highPulses++;
-//                                } else {
-//                                    flipFlops.put(d, false);
-//                                    newProcesses.put("%" + d, "low");
-//                                    //lowPulses++;
-//                                }
-//                            } else if (pulse.equals("high")) {
-//                                // do nothing
-//                            }
-//                        } else if (conjunctions.containsKey(d)) {
-//                            conjunctions.get(d).put(process, pulse);
-//                            if (conjunctions.get(d).values().stream().allMatch(item -> item.equals("high"))) {
-//                                newProcesses.put("&" + d, "low");
-//                                //lowPulses++;
-//                            } else {
-//                                newProcesses.put("&" + d, "high");
-//                                //highPulses++;
-//                            }
-//                        }
-//                    }
-//                    //conjunctions.replaceAll((k,v) -> v = Arrays.asList("low"));
-//
-//                }
-//                //System.out.println(newProcesses);
-//                toProcess = newProcesses;
-//            } while (!toProcess.isEmpty());
-//            System.out.println("Button: " + buttonPressed + " " + flipFlops + " " + conjunctions);
-//        } while (flipFlops.values().stream().anyMatch(item -> item) && buttonPressed < 1000);
-//        System.out.println("End Flops: " + flipFlops);
-//        System.out.println("End Cons: " + conjunctions);
-//        System.out.println("Low Pulses: " + lowPulses);
-//        System.out.println("High Pulses: " + highPulses);
-//        System.out.println("Button Pressed: " + buttonPressed);
-//        lowPulses *= (1000 / buttonPressed);
-//        System.out.println(lowPulses);
-//        highPulses *= (1000 / buttonPressed);
-//        System.out.println(highPulses);
-//
-//        return (long) lowPulses * highPulses;
-
+        return 0;
     }
 
     private static int sendPulses(Map<String, List<String>> modules,
